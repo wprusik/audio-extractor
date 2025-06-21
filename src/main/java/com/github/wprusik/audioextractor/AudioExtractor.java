@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class AudioExtractor {
 
-    @Value("${FFMPEG_EXECUTABLE_COMMAND}")
+    @Value("${FFMPEG_EXECUTABLE_COMMAND:ffmpeg}")
     private String ffmpegExecutableCommand;
 
     public synchronized StreamedFile extractAudio(InputStream videoInputStream) throws IOException, InterruptedException {
