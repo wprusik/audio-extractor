@@ -1,5 +1,6 @@
 package com.github.wprusik.audioextractor;
 
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.multipart.CompletedFileUpload;
 import io.micronaut.http.server.types.files.StreamedFile;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+@Requires(property = "audioextractor.rest.enabled", value = "true", defaultValue = "false")
 @Controller("/api")
 public class RestController {
 
@@ -17,7 +19,7 @@ public class RestController {
     @Inject
     private AudioExtractor extractor;
 
-    @Post(value = "/extract-audio", consumes = "multipart/form-data")
+    @Post(value = "/video/extract-audio", consumes = "multipart/form-data")
     public StreamedFile extractAudio(@Part CompletedFileUpload file) throws IOException, InterruptedException {
         log.info("Extracting audio from {} bytes of video", file.getSize());
         return extractor.extractAudio(file.getInputStream());

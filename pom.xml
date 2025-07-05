@@ -22,13 +22,6 @@
         <exec.mainClass>com.github.wprusik.audioextractor.Application</exec.mainClass>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>io.micronaut</groupId>
@@ -120,4 +113,28 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>reposilite-repository-releases</id>
+            <name>Reposilite Repository</name>
+            <url>http://vps-f37f66d7.vps.ovh.net:8081/releases</url>
+        </repository>
+        <repository>
+            <id>reposilite-repository-snapshots</id>
+            <name>Reposilite Repository</name>
+            <url>http://vps-f37f66d7.vps.ovh.net:8081/snapshots</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>reposilite-repository-releases</id>
+            <url>http://vps-f37f66d7.vps.ovh.net:8081/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>reposilite-repository-snapshots</id>
+            <url>http://vps-f37f66d7.vps.ovh.net:8081/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
