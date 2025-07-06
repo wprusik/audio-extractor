@@ -1,6 +1,8 @@
 package com.github.wprusik.audioextractor;
 
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.multipart.CompletedFileUpload;
 import io.micronaut.http.server.types.files.StreamedFile;
@@ -19,9 +21,16 @@ public class RestController {
     @Inject
     private AudioExtractor extractor;
 
-    @Post(value = "/video/extract-audio", consumes = "multipart/form-data")
-    public StreamedFile extractAudio(@Part CompletedFileUpload file) throws IOException, InterruptedException {
+    @Get("/health")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String healthcheck() {
+        log.trace("Received healthcheck");
+        return "ok";
+    }
+
+    @Post(value = "/video/extract-audio{?format}", consumes = "multipart/form-data")
+    public StreamedFile extractAudio(@Part CompletedFileUpload file, @Nullable @QueryValue String format) throws IOException, InterruptedException {
         log.info("Extracting audio from {} bytes of video", file.getSize());
-        return extractor.extractAudio(file.getInputStream());
+        return extractor.extractAudio(file.getInputStream(), format);
     }
 }

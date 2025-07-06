@@ -1,6 +1,7 @@
 package com.github.wprusik.audioextractor;
 
 import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.server.types.files.StreamedFile;
 import jakarta.inject.Singleton;
@@ -11,7 +12,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Arrays.asList;
 
 @Singleton
 public class AudioExtractor {
@@ -19,26 +25,22 @@ public class AudioExtractor {
     @Value("${FFMPEG_EXECUTABLE_COMMAND:ffmpeg}")
     private String ffmpegExecutableCommand;
 
-    public synchronized StreamedFile extractAudio(InputStream videoInputStream) throws IOException, InterruptedException {
+    public synchronized StreamedFile extractAudio(InputStream videoInputStream, @Nullable String format) throws IOException, InterruptedException {
         Path videoFile = saveToTempFile(videoInputStream);
-        Path audioFile = extractAudio(videoFile);
+        String outputFormat = format != null ? format.toLowerCase() : "mp3";
+        Path audioFile = extractAudio(videoFile, outputFormat);
         InputStream is = new AutoDeleteFileInputStream(audioFile);
         return new StreamedFile(is, MediaType.of("audio/mpeg"));
     }
 
-    private Path extractAudio(Path videoFile) throws IOException, InterruptedException {
-        Path audioFile = createTempFile("mp3");
-        doExtract(videoFile, audioFile);
+    private Path extractAudio(Path videoFile, String format) throws IOException, InterruptedException {
+        Path audioFile = createTempFile(format);
+        doExtract(videoFile, audioFile, format);
         return audioFile;
     }
 
-    private void doExtract(Path videoFile, Path outputFile) throws IOException, InterruptedException {
-        String inputVideo = videoFile.toAbsolutePath().toString();
-        String outputAudio = outputFile.toAbsolutePath().toString();
-        String command = ffmpegExecutableCommand != null ? ffmpegExecutableCommand : "ffmpeg";
-        ProcessBuilder pb = new ProcessBuilder(
-                command, "-y", "-i", inputVideo, "-q:a", "0", "-map", "a", outputAudio
-        );
+    private void doExtract(Path videoFile, Path outputFile, String format) throws IOException, InterruptedException {
+        ProcessBuilder pb = createFfmpegProcess(videoFile, outputFile, format);
         pb.inheritIO();
         pb.redirectErrorStream(true);
 
@@ -50,6 +52,20 @@ public class AudioExtractor {
         } else {
             throw new IllegalStateException("Audio extraction failed");
         }
+    }
+
+    private ProcessBuilder createFfmpegProcess(Path videoFile, Path outputFile, String format) {
+        String inputVideo = videoFile.toAbsolutePath().toString();
+        String outputAudio = outputFile.toAbsolutePath().toString();
+        String command = ffmpegExecutableCommand != null ? ffmpegExecutableCommand : "ffmpeg";
+
+        List<String> args = new ArrayList<>(asList(command, "-y", "-i", inputVideo, "-map", "a"));
+        if ("mp3".equalsIgnoreCase(format)) {
+            args.add("-q:a");
+            args.add("0");
+        }
+        args.add(outputAudio);
+        return new ProcessBuilder(args);
     }
 
     private Path saveToTempFile(InputStream videoInputStream) throws IOException {
