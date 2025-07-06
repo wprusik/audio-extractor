@@ -30,7 +30,7 @@ public class RestController {
 
     @Post(value = "/video/extract-audio{?format}", consumes = "multipart/form-data")
     public StreamedFile extractAudio(@Part CompletedFileUpload file, @Nullable @QueryValue String format) throws IOException, InterruptedException {
-        log.info("Extracting audio from {} bytes of video", file.getSize());
-        return extractor.extractAudio(file.getInputStream(), format);
+        log.info("Extracting audio from {} bytes of video. Output format: {}", file.getSize(), format != null ? format : "mp3");
+        return extractor.extractAudio(file.getInputStream(), Format.parse(format, "mp3"));
     }
 }
